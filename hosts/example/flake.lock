@@ -14,18 +14,18 @@
       },
       "locked": {
         "dir": "unixlike",
-        "lastModified": 1790239854,
+        "lastModified": 1790240730,
         "narHash": "sha256-Khv62noJw1kxap9FTyHphQ6YUiRA9BrRRiCn66oz+Pg=",
         "owner": "shk95",
         "repo": "configs",
-        "rev": "57d9bb6563957ca9463765d513d27571f5abc16d",
+        "rev": "66fed0985e6cf6f8a8e5eab1cce4f1b7ab21d39d",
         "type": "github"
       },
       "original": {
         "dir": "unixlike",
         "owner": "shk95",
         "repo": "configs",
-        "rev": "57d9bb6563957ca9463765d513d27571f5abc16d",
+        "rev": "66fed0985e6cf6f8a8e5eab1cce4f1b7ab21d39d",
         "type": "github"
       }
     },
