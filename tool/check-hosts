@@ -1,40 +1,31 @@
 #!/bin/sh
-# Evaluate every final output in every host-owned flake. Nix's flake check
-# validates output shape but does not force these toplevel derivation paths.
+# Evaluate every final output from the one host-owned flake and lock.
 set -eu
 cd "$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-
 command -v nix >/dev/null 2>&1 || { echo 'nix is required' >&2; exit 1; }
 command -v jq >/dev/null 2>&1 || { echo 'jq is required' >&2; exit 1; }
 
-count=0
-for host in hosts/*; do
-  [ -f "$host/flake.nix" ] || continue
-  count=$((count + 1))
-  (
-    cd "$host"
-    nix flake check --no-build .
-    outputs=$(nix eval --impure --json --expr '
-      let
-        flake = builtins.getFlake (toString ./.);
-        flavours = ["nixosConfigurations" "darwinConfigurations" "homeConfigurations"];
-      in builtins.concatLists (map (flavour:
-        map (name: {inherit flavour name;})
-          (builtins.attrNames (flake.${flavour} or {}))) flavours)')
-    [ "$(printf '%s' "$outputs" | jq length)" -gt 0 ] || {
-      echo "$host exports no host configuration" >&2
-      exit 1
-    }
-    printf '%s' "$outputs" | jq -r '.[] | [.flavour, .name] | @tsv' |
-      while IFS="$(printf '\t')" read -r flavour name; do
-        case "$flavour" in
-          homeConfigurations) output=activationPackage ;;
-          *) output=config.system.build.toplevel ;;
-        esac
-        printf '→ %s.%s\n' "$flavour" "$name"
-        nix eval --raw ".#$flavour.\"$name\".$output.drvPath" >/dev/null
-      done
-  )
-done
-[ "$count" -gt 0 ] || { echo 'no host flakes found' >&2; exit 1; }
-printf '✓ evaluated every output in %s host flake(s)\n' "$count"
+if [ -n "${CONFIGS_PROVIDER_OVERRIDE:-}" ]; then
+  set -- --override-input configs "$CONFIGS_PROVIDER_OVERRIDE"
+else
+  set --
+fi
+
+nix flake check --no-build "$@" path:.
+declarations=$(nix eval --json "$@" path:.#lib.hostDeclarations)
+[ "$(printf '%s' "$declarations" | jq length)" -gt 0 ] || {
+  echo 'the flake exports no host declaration' >&2
+  exit 1
+}
+printf '%s' "$declarations" | jq -r 'to_entries[] | [.key, .value.constructor] | @tsv' |
+  while IFS="$(printf '\t')" read -r name constructor; do
+    case "$constructor" in
+      mkNixos) selector="nixosConfigurations.\"$name\".config.system.build.toplevel.drvPath" ;;
+      mkDarwin) selector="darwinConfigurations.\"$name\".config.system.build.toplevel.drvPath" ;;
+      mkHome) selector="homeConfigurations.\"$name\".activationPackage.drvPath" ;;
+      *) echo "unknown constructor for $name: $constructor" >&2; exit 1 ;;
+    esac
+    printf '→ %s (%s)\n' "$name" "$constructor"
+    nix eval --raw "$@" "path:.#$selector" >/dev/null
+  done
+printf '✓ evaluated each declared host output\n'
