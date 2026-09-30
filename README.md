@@ -6,8 +6,11 @@ hostname, and Git address are examples, and it has no secret recipient or
 encrypted host value. The example consumes a pinned version of the
 [`configs`](https://github.com/shk95/configs) provider API. The root source
 and lock select delivered provider revision
-`3d6d945f1a7c32428ae506586eb5b644129e5614`; this is an explicit source
-adoption, separate from a future provider release tag.
+`c76752dc1ec285dce721ae02a2f139c9f32dcb76`; this is an explicit source
+adoption, separate from a future provider release tag. This revision includes
+the native-default override and contract-inspection repair from provider PR #435.
+The prior U1 source selection `3d6d945f1a7c32428ae506586eb5b644129e5614`
+retains its original evaluation evidence; it does not certify this pin.
 
 Create one private repository from this template. Keep one root `flake.nix`
 and `flake.lock`; add one explicit declaration per host under
