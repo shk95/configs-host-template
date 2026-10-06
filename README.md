@@ -1,7 +1,10 @@
 # configs host template
 
 This public repository is a starting point for a **private** repository that
-owns multiple Unix-like hosts. `flake-modules/hosts/example.nix` is synthetic:
+owns multiple Unix-like hosts. An independent Windows starting point lives in
+[`windows/`](windows/README.md); copy only that directory for a Windows consumer.
+
+`flake-modules/hosts/example.nix` is synthetic:
 its account, hostname, and Git address are examples, and it has no secret
 recipient or encrypted host value. The example consumes provider release
 `unixlike-v1.0.0` from [`configs`](https://github.com/shk95/configs).

@@ -1,0 +1,100 @@
+{
+  "formatVersion": 1,
+  "provider": {
+    "commit": "ca2da420882c6479f393cec22b6113c84da0fee4"
+  },
+  "features": [
+    "core",
+    "font",
+    "zellij",
+    "terminal",
+    "wezterm",
+    "powertoys"
+  ],
+  "units": {
+    "advancedPaste": {
+      "enabled": true
+    },
+    "awake": {
+      "enabled": true
+    },
+    "commandPalette": {
+      "enabled": true
+    },
+    "fancyZones": {
+      "enabled": true
+    },
+    "fancyZonesDefaultLayouts": {
+      "enabled": true
+    },
+    "fileExplorer": {
+      "enabled": true
+    },
+    "fileLocksmith": {
+      "enabled": true
+    },
+    "findMyMouse": {
+      "enabled": true
+    },
+    "keyboardManager": {
+      "enabled": true
+    },
+    "keyboardManagerMapping": {
+      "enabled": true
+    },
+    "newPlus": {
+      "enabled": true
+    },
+    "peek": {
+      "enabled": true
+    },
+    "peekPreview": {
+      "enabled": true
+    },
+    "powerRename": {
+      "enabled": true
+    },
+    "powerToysRoot": {
+      "enabled": true
+    },
+    "powershellProfile": {
+      "enabled": true
+    },
+    "weztermAppearance": {
+      "enabled": true
+    },
+    "weztermBehavior": {
+      "enabled": true
+    },
+    "weztermBindings": {
+      "enabled": true
+    },
+    "weztermDarwin": {
+      "enabled": true
+    },
+    "weztermFontManifest": {
+      "enabled": true
+    },
+    "weztermFonts": {
+      "enabled": true
+    },
+    "weztermLinux": {
+      "enabled": true
+    },
+    "weztermRoot": {
+      "enabled": true
+    },
+    "weztermWindows": {
+      "enabled": true
+    },
+    "windowsTerminal": {
+      "enabled": true
+    },
+    "workspaces": {
+      "enabled": true
+    },
+    "zellij": {
+      "enabled": true
+    }
+  }
+}
