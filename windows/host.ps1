@@ -4,16 +4,50 @@
 Prepares a pinned provider, builds a generation, checks or explicitly applies it.
 .DESCRIPTION
 Run prepare, then build, then check under native Windows PowerShell 7.
+Capture previews by default; explicit Save writes host originals.
 Only apply changes managed host state. Commands never update the declared pin.
 #>
+[CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('prepare', 'build', 'check', 'apply')]
-    [string] $Command
+    [ValidateSet('prepare', 'build', 'check', 'apply', 'capture', 'inspect', 'export-selection', 'help')]
+    [string] $Command,
+    [string[]] $Unit,
+    [string[]] $Document,
+    [switch] $Save,
+    [string] $State
 )
 
 $ErrorActionPreference = 'Stop'
 try {
+    foreach ($name in @('Unit', 'Document', 'Save', 'WhatIf', 'Confirm')) {
+        if ($PSBoundParameters.ContainsKey($name) -and $Command -ne 'capture') {
+            throw "-$name is accepted only with capture."
+        }
+    }
+    if ($PSBoundParameters.ContainsKey('State') -and $Command -ne 'export-selection') {
+        throw '-State is accepted only with export-selection.'
+    }
+    if ($Command -eq 'help') {
+        @'
+Usage: .\host.ps1 <command> [options]
+  prepare          acquire/verify the declared provider SHA; print its contract
+  inspect          read the prepared provider contract without network access
+  build            generate selected desired state; no Apply
+  check            inspect the existing generation; read-only
+  apply            explicitly apply the existing generation to this host
+  capture          preview explicitly selected/enabled app units into host originals
+                   -Unit <IDs> [-Document <relative paths>] [-Save] [-WhatIf]
+  export-selection print a legacy selection proposal; optional -State <file>
+  help             print this help; no Windows or provider prerequisite
+First capture requires Document; subsequent capture uses its existing connection.
+Save writes originals and connections, never Apply or Git. Rebuild after saving.
+Prerequisites: native Windows PowerShell 7; Git for provider access; build also
+needs the selected payload parsers (all-option template: Lua compiler and Zellij).
+Check returns provider statuses unchanged: 0 converged, 2 drift, 69 unverified.
+'@ | Write-Output
+        exit 0
+    }
     if (-not $IsWindows) { throw 'Run this consumer under native Windows PowerShell 7.' }
     if (-not $env:LOCALAPPDATA) { throw 'LOCALAPPDATA is required.' }
     $environmentPath = Join-Path $PSScriptRoot 'environment.json'
@@ -64,6 +98,29 @@ try {
             }
             Assert-Provider
             & (Join-Path $provider 'windows\win-env.ps1') inspect -SourceRoot $provider
+            exit $LASTEXITCODE
+        }
+        'inspect' {
+            Assert-Provider
+            & (Join-Path $provider 'windows\win-env.ps1') inspect -SourceRoot $provider
+            exit $LASTEXITCODE
+        }
+        'capture' {
+            if (-not $Unit.Count) { throw 'capture requires explicit -Unit IDs.' }
+            Assert-Provider
+            $arguments = @{ SourceRoot = $provider; Environment = $environmentPath; Unit = $Unit }
+            if ($PSBoundParameters.ContainsKey('Document')) { $arguments.Document = $Document }
+            $arguments.Save = [bool]$Save
+            $arguments.WhatIf = [bool]$WhatIfPreference
+            if ($PSBoundParameters.ContainsKey('Confirm')) { $arguments.Confirm = $PSBoundParameters.Confirm }
+            & (Join-Path $provider 'windows\win-env.ps1') capture @arguments
+            exit $LASTEXITCODE
+        }
+        'export-selection' {
+            Assert-Provider
+            $arguments = @{ SourceRoot = $provider }
+            if ($PSBoundParameters.ContainsKey('State')) { $arguments.State = $State }
+            & (Join-Path $provider 'windows\win-env.ps1') export-selection @arguments
             exit $LASTEXITCODE
         }
         'build' {

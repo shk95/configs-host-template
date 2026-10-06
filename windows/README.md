@@ -67,3 +67,53 @@ Native generation, client Check and Apply remain unverified. Provider release CI
 qualifies its fixtures, not this consumer on a real host. The initial client
 baseline is Windows 10 IoT Enterprise LTSC 21H2 x64 build 19044; Windows 11
 qualification is separate. Apply has not been performed.
+
+## Inspect, capture and migrate
+
+`host.ps1 help` lists commands and works without Windows or a prepared provider.
+After prepare, `host.ps1 inspect` prints the contract without network access.
+
+Preview one existing app unit, then explicitly save its complete host source:
+
+```powershell
+.\host.ps1 capture -Unit advancedPaste -Document settings/paste.json
+.\host.ps1 capture -Unit advancedPaste -Document settings/paste.json -Save -WhatIf
+.\host.ps1 capture -Unit advancedPaste -Document settings/paste.json -Save
+.\host.ps1 build
+.\host.ps1 check
+```
+
+Review each preview/result before continuing. First capture requires a relative
+Document path; later capture can omit it and use the existing connection. Multiple
+Document paths align with the explicit Unit list. Capture neither enables units
+nor selects features. Save creates a source=host document and its connection,
+without changing app settings, generated results or Git history. Capture projects
+only the currently owned keys for JsonSubset units and excludes runtime state.
+Multi-file Save can partially complete; inspect per-unit outcomes and retry
+explicitly. Commit/push and Apply are separate actions. Unsupported units or
+missing app settings are refused. Regenerate after changing originals.
+
+For a legacy deployment, print a read-only migration proposal:
+
+```powershell
+.\host.ps1 export-selection -State "$env:LOCALAPPDATA\win-env\state.json"
+```
+
+Without State, this prints a first-use core-only proposal; it does not replace
+this template's all-option declaration. Review blockers and adopt the proposal
+manually. Schema-1 migration may require its recorded historical provider commit
+in the cache. Generation-owned schema-3 state uses its original declaration.
+
+## Prerequisites
+
+Install native PowerShell 7 and Git before using prepare. The all-option build
+also needs a Lua compiler (`luac.exe` or another spelling supported by the pinned
+provider) for WezTerm and `zellij.exe` for KDL validation. WinGet is required for
+managed package operations. Prepare downloads source only; it does not install
+these tools. Build validates selected payloads and reports unavailable parsers;
+Check reports remaining runtime prerequisites and drift. There is no automatic
+prerequisite installation or separate consumer doctor command.
+
+The provider's `setup-dev` installs contributor tooling; `validate/test` exercise
+provider source. They are not implicitly called by this consumer. Font rendering
+can be inspected with the prepared provider's `windows/win-env.ps1 font` command.
