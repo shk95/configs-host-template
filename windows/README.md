@@ -9,8 +9,9 @@ its flake, lock and modules are not required in the Windows consumer.
 Adopted tag: `windows-v1.0.0`.
 Exact commit: `ca2da420882c6479f393cec22b6113c84da0fee4`.
 
-`environment.json` is the authoritative SHA pin. It explicitly enables all six
-features and all 28 managed file units in this release, using provider defaults.
+`environment.json` is the authoritative SHA pin. It selects all six features and enables 26 of this release's 28 managed file
+units, using provider defaults. weztermDarwin and weztermLinux are explicitly
+disabled because they are unused on Windows.
 Tag movement does not change the pin. New releases and newly offered options
 require explicit adoption and selection review. There are no private identities
 or settings in this example. This release does not offer host-global .wslconfig
@@ -127,3 +128,13 @@ Managed includes required features and dependency closure and respects disabled
 units. Units without a connection use configs defaults. This is a read-only
 inventory; it does not check app installation, target presence or capture readiness.
 Use the displayed Unit ID with capture and supply Document on first capture.
+
+## Windows-only WezTerm adoption
+
+The current release pin is unchanged. Its unused weztermDarwin and weztermLinux
+units are explicitly disabled, so generation does not manage their files. The
+pinned loader selects platform.windows on Windows. Existing deployed copies are
+left untouched. The provider cleanup removes these units and platform files and
+loads Windows directly; when adopting a release containing that change, remove
+the two disabled declarations after inspecting the new contract. Rebuild after
+changing this declaration. No newer release or client qualification is implied.

@@ -70,7 +70,7 @@
       "enabled": true
     },
     "weztermDarwin": {
-      "enabled": true
+      "enabled": false
     },
     "weztermFontManifest": {
       "enabled": true
@@ -79,7 +79,7 @@
       "enabled": true
     },
     "weztermLinux": {
-      "enabled": true
+      "enabled": false
     },
     "weztermRoot": {
       "enabled": true
