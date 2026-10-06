@@ -10,7 +10,7 @@ Only apply changes managed host state. Commands never update the declared pin.
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('prepare', 'build', 'check', 'apply', 'capture', 'inspect', 'export-selection', 'help')]
+    [ValidateSet('prepare', 'build', 'check', 'apply', 'capture', 'inspect', 'export-selection', 'units', 'help')]
     [string] $Command,
     [string[]] $Unit,
     [string[]] $Document,
@@ -33,6 +33,7 @@ try {
 Usage: .\host.ps1 <command> [options]
   prepare          acquire/verify the declared provider SHA; print its contract
   inspect          read the prepared provider contract without network access
+  units            list offered units and this declaration's management/source
   build            generate selected desired state; no Apply
   check            inspect the existing generation; read-only
   apply            explicitly apply the existing generation to this host
@@ -104,6 +105,53 @@ Check returns provider statuses unchanged: 0 converged, 2 drift, 69 unverified.
             Assert-Provider
             & (Join-Path $provider 'windows\win-env.ps1') inspect -SourceRoot $provider
             exit $LASTEXITCODE
+        }
+        'units' {
+            Assert-Provider
+            $json = & (Join-Path $provider 'windows\win-env.ps1') inspect -SourceRoot $provider
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            $contract = ($json -join "`n") | ConvertFrom-Json -AsHashtable
+            $declaration = Get-Content -LiteralPath $environmentPath -Raw -Encoding utf8 | ConvertFrom-Json -AsHashtable
+            $features = @{}
+            foreach ($feature in $contract.features) { $features[$feature.Id] = $feature }
+            $selected = [Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+            $pending = [Collections.Generic.Queue[string]]::new()
+            foreach ($id in $declaration.features) { $pending.Enqueue($id) }
+            foreach ($feature in $contract.features) {
+                if ($feature.Required) { $pending.Enqueue($feature.Id) }
+            }
+            while ($pending.Count) {
+                $id = $pending.Dequeue()
+                if (-not $features.ContainsKey($id)) { throw "Unknown selected feature '$id'." }
+                if ($selected.Add($id)) {
+                    foreach ($dependency in $features[$id].Requires) { $pending.Enqueue($dependency) }
+                }
+            }
+            $rows = foreach ($unitInfo in $contract.units) {
+                $entry = $declaration.units[$unitInfo.id]
+                $isSelected = $selected.Contains($unitInfo.feature)
+                $enabled = -not $entry -or $entry.enabled -eq $true
+                $source = 'configs'
+                $document = if ($entry) { $entry.document } else { $null }
+                if ($document) {
+                    # Resolve connected originals using the pinned provider's path contract.
+                    Import-Module (Join-Path $provider 'windows\src\WinEnvGeneration.psm1')
+                    $path = Resolve-WinEnvContractPath -Root $PSScriptRoot -Relative $document
+                    $settings = Read-WinEnvContractJson $path
+                    $source = $settings.source
+                }
+                [pscustomobject]@{
+                    Unit = $unitInfo.id
+                    Feature = $unitInfo.feature
+                    Parser = $unitInfo.parser
+                    Managed = ($isSelected -and $enabled)
+                    Source = $source
+                    Document = $document
+                }
+            }
+            $rows | Sort-Object Feature, Unit | Format-Table -AutoSize -Wrap
+            Write-Output 'Managed includes required features and dependencies. App presence and capture readiness are not checked.'
+            exit 0
         }
         'capture' {
             if (-not $Unit.Count) { throw 'capture requires explicit -Unit IDs.' }

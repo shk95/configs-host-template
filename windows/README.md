@@ -117,3 +117,13 @@ prerequisite installation or separate consumer doctor command.
 The provider's `setup-dev` installs contributor tooling; `validate/test` exercise
 provider source. They are not implicitly called by this consumer. Font rendering
 can be inspected with the prepared provider's `windows/win-env.ps1 font` command.
+
+## List units
+
+After prepare, run `./host.ps1 units` to list all units offered by the pinned
+provider. The table shows the exact case-sensitive Unit ID for capture, feature,
+parser, effective Managed status, settings Source and connected Document path.
+Managed includes required features and dependency closure and respects disabled
+units. Units without a connection use configs defaults. This is a read-only
+inventory; it does not check app installation, target presence or capture readiness.
+Use the displayed Unit ID with capture and supply Document on first capture.
