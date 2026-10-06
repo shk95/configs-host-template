@@ -6,12 +6,11 @@ its flake, lock and modules are not required in the Windows consumer.
 
 ## Provider pin and selection
 
-Adopted tag: `windows-v1.0.0`.
-Exact commit: `ca2da420882c6479f393cec22b6113c84da0fee4`.
+Adopted tag: `windows-v2.0.0`.
+Exact commit: `81229c16a05dde8b0ba9cc0d7412976b48d948fb`.
 
-`environment.json` is the authoritative SHA pin. It selects all six features and enables 26 of this release's 28 managed file
-units, using provider defaults. weztermDarwin and weztermLinux are explicitly
-disabled because they are unused on Windows.
+`environment.json` is the authoritative SHA pin. It explicitly enables all six features and all 26 managed file units in this
+release, using provider defaults.
 Tag movement does not change the pin. New releases and newly offered options
 require explicit adoption and selection review. There are no private identities
 or settings in this example. This release does not offer host-global .wslconfig
@@ -131,10 +130,9 @@ Use the displayed Unit ID with capture and supply Document on first capture.
 
 ## Windows-only WezTerm adoption
 
-The current release pin is unchanged. Its unused weztermDarwin and weztermLinux
-units are explicitly disabled, so generation does not manage their files. The
-pinned loader selects platform.windows on Windows. Existing deployed copies are
-left untouched. The provider cleanup removes these units and platform files and
-loads Windows directly; when adopting a release containing that change, remove
-the two disabled declarations after inspecting the new contract. Rebuild after
-changing this declaration. No newer release or client qualification is implied.
+windows-v2.0.0 removes weztermDarwin and weztermLinux and loads platform.windows
+directly. Those unit IDs are absent from this declaration and provider inventory.
+Existing deployed copies remain unmanaged and are not automatically deleted.
+After pulling this adoption, run prepare, build and check to use the new pin;
+Apply is a separate explicit host action. The release's native Windows CI
+qualifies provider fixtures, not this private consumer's actual host state.

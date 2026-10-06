@@ -1,7 +1,7 @@
 {
   "formatVersion": 1,
   "provider": {
-    "commit": "ca2da420882c6479f393cec22b6113c84da0fee4"
+    "commit": "81229c16a05dde8b0ba9cc0d7412976b48d948fb"
   },
   "features": [
     "core",
@@ -69,17 +69,11 @@
     "weztermBindings": {
       "enabled": true
     },
-    "weztermDarwin": {
-      "enabled": false
-    },
     "weztermFontManifest": {
       "enabled": true
     },
     "weztermFonts": {
       "enabled": true
-    },
-    "weztermLinux": {
-      "enabled": false
     },
     "weztermRoot": {
       "enabled": true
