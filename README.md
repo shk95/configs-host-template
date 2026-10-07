@@ -36,6 +36,37 @@ Set `CONFIGS_PROVIDER_OVERRIDE` to a candidate Unix-like flake path when
 running `tool/check-hosts` to check an exact pair. Run candidate-pair checks
 in a linked worktree because Nix may update its lock.
 
+## Consumer command runner
+
+With Nix installed, enter the consumer's development shell:
+
+```sh
+nix develop
+just
+just check
+just nixos-eval example
+```
+
+The shell supplies `just`, `jq` (needed by `tool/check-hosts`), and `alejandra`
+for `just fmt`. It is available on x86_64 and aarch64 Linux and aarch64 macOS,
+independently of the systems chosen by host declarations. Without entering
+an interactive shell, use `nix develop --command just check`.
+
+`Justfile` is a consumer-owned example adapted from the provider's command
+runner. All host recipes require an explicit output name from this flake:
+`nixos-eval/build/switch`, `darwin-eval/build/switch`, and
+`home-eval/build/switch`. Evaluation does not build; build prints store paths
+without creating a `result` link. `just check` evaluates every declared host.
+
+Replace the synthetic declaration with reviewed real host declarations before
+using a `*-switch` recipe, and run it only on the intended host (as the intended
+user for standalone Home Manager). Switch recipes activate the configuration;
+they are never dependencies of checks or builds. Darwin and standalone Home
+Manager switch recipes also support first activation without an installed
+rebuild command. NixOS requires the host's `nixos-rebuild` command. No recipe
+automatically updates inputs; review provider adoption and lock changes
+separately. These commands cover the Unix-like consumer only.
+
 ## Release adoption evidence, 2026-10-06
 
 Evaluation: `tool/check-hosts` passed against the committed source URL and
