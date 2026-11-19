@@ -1,8 +1,8 @@
 # configs host template
 
 A starting point for a **private** repository managing Unix-like hosts with
-[`configs`](https://github.com/shk95/configs). The provider version is pinned in
-`flake.nix` and `flake.lock`.
+[`configs`](https://github.com/shk95/configs). `flake.nix` and `flake.lock` pin
+the exact source revision of `unixlike-v2.0.0`.
 
 For a native Windows consumer, copy only [`windows/`](windows/README.md).
 
@@ -35,6 +35,41 @@ policy belong to this repository. Standalone `mkHome` requires `homeDirectory`
 and accepts only `homeModules`.
 
 See `api/contract.json` in the pinned provider source for the input contract.
+
+## Program selection
+
+The provider selects programs by default for the host's platform and environment.
+Set `providerTools.groups.<group>` in `homeModules` to override a group. An
+individual `providerTools.programs.<id>.enable` choice takes precedence over
+the group. For example, use this home module to keep Zellij while disabling the
+rest of the terminal group:
+
+```nix
+homeModules = [{
+  providerTools.groups.terminal = false;
+  providerTools.programs.zellij.enable = true;
+}];
+```
+
+Inspect the example's evaluated program selections with:
+
+```sh
+nix eval --json 'path:.#nixosConfigurations.example.config.providerTools.inventory'
+```
+
+## Adopting Unix-like 2.0.0
+
+The provider supplies Codex and Claude Code through mise on Linux and Homebrew
+on macOS. In a `mkDarwin` declaration, set `homebrew.enable = true;` in
+`systemModules` if the provider manages those tools. Set
+`providerTools.agents.enable = false;` in `homeModules` to opt out of the default
+coding-agent profile. Remove duplicate installation declarations and check
+`command -v codex claude` in a fresh shell after activation.
+
+Switching generations resets selected Ghostty, Paneru, WezTerm, and Zellij
+settings to the incoming configuration. The switch saves previous content as
+numbered diffs next to the affected files. On macOS, check Accessibility access
+for the updated Paneru executable if the host uses it.
 
 ## Build and activate
 
